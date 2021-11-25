@@ -3,7 +3,7 @@ App = {
   contracts: {},
 
   init: async function() {
-    // Load pets.
+    // Load chargers.
     $.getJSON('../chargers.json', function(data) {
       var chargersRow = $('#chargersRow');
       var chargerTemplate = $('#chargerTemplate');
@@ -11,14 +11,19 @@ App = {
       for (i = 0; i < data.length; i ++) {
         chargerTemplate.find('.panel-title').text(data[i].name);
         chargerTemplate.find('img').attr('src', data[i].picture);
-        chargerTemplate.find('.pet-breed').text(data[i].breed);
-        chargerTemplate.find('.pet-age').text(data[i].age);
-        chargerTemplate.find('.pet-location').text(data[i].location);
-        chargerTemplate.find('.btn-adopt').attr('data-id', data[i].id);
+        chargerTemplate.find('.charge-power').text(data[i].power);
+        chargerTemplate.find('.charge-cableType').text(data[i].cableType);
+        chargerTemplate.find('.charge-location').text(data[i].location);
+        chargerTemplate.find('.charge-tariff').text(data[i].tariff);
+        chargerTemplate.find('.charge-latitude').text(data[i].latitude);
+        chargerTemplate.find('.charge-longitude').text(data[i].longitude);
+        chargerTemplate.find('.charge-oracleAddress').text(data[i].oracleAddress)
+        chargerTemplate.find('.btn-charge').attr('data-id', data[i].id);
 
         chargersRow.append(chargerTemplate.html());
       }
     });
+
 
     return await App.initWeb3();
   },
@@ -48,36 +53,47 @@ App = {
   },
 
   initContract: function() {
-    $.getJSON('Adoption.json', function(data) {
+    document.getElementById("Res").innerHTML = "InitContract"
+    $.getJSON('ChargersListing.json', function(data) {
       // Get the necessary contract artifact file and instantiate it with truffle-contract
-      var AdoptionArtifact = data;
-      App.contracts.Adoption = TruffleContract(AdoptionArtifact);
-    
+      var ChargersListArtifact = data;
+      App.contracts.ChargersListing = TruffleContract(ChargersListArtifact);
+      console.log(142);
       // Set the provider for our contract
-      App.contracts.Adoption.setProvider(App.web3Provider);
+      App.contracts.ChargersListing.setProvider(App.web3Provider);
+      App.contracts.ChargersListing.deployed().then(function(instance) {
+        var chargingInstancetmp
+        chargingInstancetmp = instance;
+        $.getJSON('../chargers.json', function(data) {
+          for (i = 0; i < data.length; i ++) {
+            console.log(i);
+            chargingInstancetmp.addCharger(data[i].id, data[i].power, data[i].cableType, data[i].tariff, data[i].latitude, data[i].longitude, data[i].oracleAddress)
+          }
+        });
+      });
     
       // Use our contract to retrieve and mark the adopted pets
-      return App.markAdopted();
+      return App.markCharging();
     });
 
     return App.bindEvents();
   },
 
   bindEvents: function() {
-    $(document).on('click', '.btn-adopt', App.handleAdopt);
+    $(document).on('click', '.btn-charge', App.handleCharging);
   },
 
-  markAdopted: function(adopters, account) {
-    var adoptionInstance;
+  markCharging: function(ChargersIndexes, account) {
+    var chargingInstance;
+    App.contracts.ChargersListing.deployed().then(function(instance) {
+      document.getElementById("Res").innerHTML = "markCharging";
+      chargingInstance = instance;
 
-    App.contracts.Adoption.deployed().then(function(instance) {
-      adoptionInstance = instance;
-
-      return adoptionInstance.getAdopters.call();
-    }).then(function(adopters) {
-      for (i = 0; i < adopters.length; i++) {
-        if (adopters[i] !== '0x0000000000000000000000000000000000000000') {
-          $('.panel-pet').eq(i).find('button').text('Success').attr('disabled', true);
+      return chargingInstance.getAllChargersIndexes.call();
+    }).then(function(ChargersIndexes) {
+      for (i = 0; i < ChargersIndexes.length; i++) {
+        if (App.contracts.ChargersListing.chargers([ChargersIndexes[i]]) !== '0x0000000000000000000000000000000000000000') {
+          $('.panel-chargers').eq(i).find('button').text('Success').attr('disabled', true);
         }
       }
     }).catch(function(err) {
@@ -85,12 +101,30 @@ App = {
     });
   },
 
-  handleAdopt: function(event) {
+  handleCharging: function(event) {
     event.preventDefault();
+    
+    document.getElementById("ResultBad").innerHTML = null;
+    var beginTime = document.getElementById("appt1").value;
+    var endTime = document.getElementById("appt2").value;
+    var beginMinutes = (Date.parse(beginTime))/1000/300;
+    var diffMinutes = (Date.parse(endTime) - Date.parse(beginTime))/1000/300;
+    document.getElementById("Res").innerHTML = "HI"
+    if(beginTime && endTime){
+      if(diffMinutes<=0)
+      {
+        document.getElementById("ResultBad").innerHTML = "Contract wasn't made begin time more then end time";
+        return false;
+      }
+    }
+    else {
+      document.getElementById("ResultBad").innerHTML = "Contract wasn't made not both times were passed";
+      return false;
+    }
+    document.getElementById("Res").innerHTML = "HI after if";
+    var chargeId = parseInt($(event.target).data('id'));
 
-    var petId = parseInt($(event.target).data('id'));
-
-    var adoptionInstance;
+    var chargingInstance;
 
     web3.eth.getAccounts(function(error, accounts) {
       if (error) {
@@ -98,20 +132,24 @@ App = {
       }
 
       var account = accounts[0];
-
-      App.contracts.Adoption.deployed().then(function(instance) {
-        adoptionInstance = instance;
+      document.getElementById("Res").innerHTML = "HI before deploy";
+      App.contracts.ChargersListing.deployed().then(function(instance) {
+        chargingInstance = instance;
 
         // Execute adopt as a transaction by sending account
-        return adoptionInstance.adopt(petId, {from: account});
+        document.getElementById("Res").innerHTML = "Before deposit";
+        var p = chargingInstance.getAllChargersIndexes();
+        console.log(p.length);
+        document.getElementById("Res").innerHTML = "Got all chergers indexes";
+        return chargingInstance.chargers()[chargeId].registerDeposit(beginMinutes,diffMinutes,0, {from: account});
       }).then(function(result) {
-        return App.markAdopted();
+        
+        return App.markCharging();
       }).catch(function(err) {
         console.log(err.message);
       });
     });
   }
-
 };
 
 $(function() {

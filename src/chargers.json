@@ -1,34 +1,50 @@
 [
   {
     "id": 0,
-    "name": "Frieda",
+    "name": "Mos Energo",
     "picture": "images/Mosenerg.jpeg",
-    "age": 3,
-    "breed": "Scottish Terrier",
-    "location": "Lisco, Alabama"
+    "location": "Moscow",
+    "power": 150,
+    "cableType": 1,
+    "tariff": 1000000000000,
+    "latitude": "55.716862",
+    "longitude": "37.569031",
+    "oracleAddress": "0x42Dbe1274e3207b834F345CD16FD00c3a8e0B1fB"
   },
   {
     "id": 1,
-    "name": "Gina",
-    "picture": "images/scottish-terrier.jpeg",
-    "age": 3,
-    "breed": "Scottish Terrier",
-    "location": "Tooleville, West Virginia"
+    "name": "Charge Point",
+    "picture": "images/ChargePoint.jpeg",
+    "location": "Paris",
+    "power": 150,
+    "cableType": 1,
+    "tariff": 1000000000000,
+    "latitude": "55.716862",
+    "longitude": "37.569031",
+    "oracleAddress": "0xa87b9030e98fC682872eF813EEe9f5dA238dfBE2"
   },
   {
     "id": 2,
-    "name": "Collins",
-    "picture": "images/french-bulldog.jpeg",
-    "age": 2,
-    "breed": "French Bulldog",
-    "location": "Freeburn, Idaho"
+    "name": "ABB",
+    "picture": "images/ABBIncharge.jpeg",
+    "location": "London",
+    "power": 150,
+    "cableType": 1,
+    "tariff": 1000000000000,
+    "latitude": "55.716862",
+    "longitude": "37.569031",
+    "oracleAddress": "0xe3f785555ACB71113c4F20577faa17252AF600bb"
   },
   {
     "id": 3,
-    "name": "Melissa",
-    "picture": "images/boxer.jpeg",
-    "age": 2,
-    "breed": "Boxer",
-    "location": "Camas, Pennsylvania"
+    "name": "Tesla",
+    "picture": "images/Tesla.jpeg",
+    "location": "Berlin",
+    "power": 150,
+    "cableType": 1,
+    "tariff": 1000000000000,
+    "latitude": "55.716862",
+    "longitude": "37.569031",
+    "oracleAddress": "0xF7dD977bFc8F33DC4e9C029f553a41d0cD8C5E8F"
   }
 ]
