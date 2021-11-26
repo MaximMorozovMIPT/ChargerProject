@@ -23,8 +23,6 @@ App = {
         chargersRow.append(chargerTemplate.html());
       }
     });
-
-
     return await App.initWeb3();
   },
 
@@ -61,14 +59,22 @@ App = {
       console.log(142);
       // Set the provider for our contract
       App.contracts.ChargersListing.setProvider(App.web3Provider);
-      App.contracts.ChargersListing.deployed().then(function(instance) {
-        var chargingInstancetmp
-        chargingInstancetmp = instance;
-        $.getJSON('../chargers.json', function(data) {
-          for (i = 0; i < data.length; i ++) {
-            console.log(i);
-            chargingInstancetmp.addCharger(data[i].id, data[i].power, data[i].cableType, data[i].tariff, data[i].latitude, data[i].longitude, data[i].oracleAddress)
-          }
+      web3.eth.getAccounts(function(error, accounts) {
+        if (error) {
+          console.log(error);
+        }
+        var account = accounts[0];
+        console.log(accounts);
+        App.contracts.ChargersListing.deployed().then(function(instance) {
+          var chargingInstancetmp
+          chargingInstancetmp = instance;
+          $.getJSON('../chargers.json', function(data) {
+            for (i = 0; i < data.length; i ++) {
+              console.log(data[i].oracleAddress);
+              chargingInstancetmp.addCharger(data[i].id, data[i].power, data[i].cableType, data[i].tariff, data[i].latitude, data[i].longitude, data[i].oracleAddress, {from: account})
+            }
+          });
+          return true;
         });
       });
     
@@ -89,13 +95,16 @@ App = {
       document.getElementById("Res").innerHTML = "markCharging";
       chargingInstance = instance;
 
-      return chargingInstance.getAllChargersIndexes.call();
+      return chargingInstance.getAllChargersIndexes();
     }).then(function(ChargersIndexes) {
-      for (i = 0; i < ChargersIndexes.length; i++) {
-        if (App.contracts.ChargersListing.chargers([ChargersIndexes[i]]) !== '0x0000000000000000000000000000000000000000') {
+      console.log(ChargersIndexes)
+      for (i = 0; i < ChargersIndexes.length; i++) { 
+        console.log(chargingInstance.chargers(i))
+        if (chargingInstance.chargers(i) !== '0x0000000000000000000000000000000000000000') {
           $('.panel-chargers').eq(i).find('button').text('Success').attr('disabled', true);
         }
       }
+      return true;
     }).catch(function(err) {
       console.log(err.message);
     });
@@ -130,8 +139,8 @@ App = {
       if (error) {
         console.log(error);
       }
-
       var account = accounts[0];
+      console.log(accounts[0]);
       document.getElementById("Res").innerHTML = "HI before deploy";
       App.contracts.ChargersListing.deployed().then(function(instance) {
         chargingInstance = instance;
@@ -140,10 +149,9 @@ App = {
         document.getElementById("Res").innerHTML = "Before deposit";
         var p = chargingInstance.getAllChargersIndexes();
         console.log(p.length);
-        document.getElementById("Res").innerHTML = "Got all chergers indexes";
-        return chargingInstance.chargers()[chargeId].registerDeposit(beginMinutes,diffMinutes,0, {from: account});
+        document.getElementById("Res").innerHTML = "Got all chargers indexes";
+        return chargingInstance.chargers(chargeId).registerDeposit(beginMinutes,diffMinutes,0, {from: account});
       }).then(function(result) {
-        
         return App.markCharging();
       }).catch(function(err) {
         console.log(err.message);
